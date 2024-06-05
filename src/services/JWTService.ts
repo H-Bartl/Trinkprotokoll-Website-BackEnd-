@@ -17,14 +17,19 @@ export async function verifyPasswordAndCreateJWT(name: string, password: string)
     const secret = process.env.JWT_SECRET;
     const ttl = process.env.JWT_TTL;
 
+    if(!secret || !ttl){
+        throw new Error("Umgebungsvariable Secret und TTL nicht gegeben!")
+    }
+
     const payload: JwtPayload = {
         sub: findPfleger.id,
-        role: einlogen.role
+        role: einlogen.role,
+        exp: Number(ttl)
     }
 
     const jwtString = sign(
         payload,
-        secret!,
+        secret,
         {
             expiresIn: ttl,
             algorithm: "HS256"
@@ -35,5 +40,20 @@ export async function verifyPasswordAndCreateJWT(name: string, password: string)
 }
 
 export function verifyJWT(jwtString: string | undefined): LoginResource {
+    const secret = process.env.JWT_SECRET;
+    const ttl = process.env.JWT_TTL;
+
+    if(!secret || !ttl){
+        throw new Error("Umgebungsvariable Secret und TTL nicht gegeben!")
+    }
+
+    if(!jwtString){
+        throw new Error("Falsch")
+    }
+
+    if(!jwtString!.includes(secret)){
+        throw new Error("Falsch")
+    }
+
     throw new Error("Function verifyJWT not implemented yet")
 }

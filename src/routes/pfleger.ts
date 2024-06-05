@@ -35,7 +35,7 @@ pflegerRouter.put("/:id",
     param("id").isMongoId(),
     body("id").isMongoId(),
     body("name").isString().isLength({min: 3, max: 100}),
-    body("password").isString().isStrongPassword(),
+    body("password").optional().isString().isStrongPassword(),
     body("admin").isBoolean(),
     async (req,res,next) => {
         const errors = validationResult(req).array()
