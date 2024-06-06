@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { JwtPayload, sign } from "jsonwebtoken";
-import { verifyPasswordAndCreateJWT } from "../../src/services/JWTService";
+import { JwtPayload, sign, verify } from "jsonwebtoken";
+import { verifyJWT, verifyPasswordAndCreateJWT } from "../../src/services/JWTService";
 import { createPfleger } from "../../src/services/PflegerService";
 import { HydratedDocument } from "mongoose";
 import { IPfleger, Pfleger } from "../../src/model/PflegerModel";
+import { LoginResource } from "../../src/Resources";
 
 let pfleger: HydratedDocument<IPfleger>;
 let jwtString: string;
@@ -58,10 +59,60 @@ test("JWTService Test mit user",async () => {
     expect(response).toBe(jwtString2)
 })
 
-test("JWTService Test throw pfleger nicht gefunden",async () => {
-    await expect(verifyPasswordAndCreateJWT("", "sdas")).rejects.toThrow("Kein regristierter Pfleger auf diesem Namen!")
-})
-
 test("JWTService Test throw login fehler",async () => {
     await expect(verifyPasswordAndCreateJWT("Hamza", "falsch")).rejects.toThrow("Login fehlgeschlagen!")
+})
+
+test("JWTService Test verifyJWT", () => {
+    const response = verifyJWT(jwtString);
+    const payload = verify(jwtString, process.env.JWT_SECRET!) as LoginResource
+    let loginResource: LoginResource = {
+        id: pfleger.id,
+        role: 'a',
+        exp: payload.exp
+    }
+    expect(response).toStrictEqual(loginResource)
+})
+
+test("JWTService Test mit secret löschen",async () => {
+    const deletedSecret = delete process.env.JWT_SECRET
+    try{
+        await expect(verifyPasswordAndCreateJWT("Hamza", "Password42!")).rejects.toThrow("Umgebungsvariable Secret und TTL nicht gegeben!")
+    } finally {
+        process.env.JWT_SECRET = "HamZA.Secret42!"
+    }
+})
+
+test("Negativ tests", () => {
+    expect(() => verifyJWT("")).toThrow("JWT is unvalid")
+})
+
+test("verifyJWT testen ohne env",async () => {
+    const deletedSecret = delete process.env.JWT_SECRET
+    try{
+        expect(() => verifyJWT(jwtString)).toThrow("Umgebungsvariable Secret und TTL nicht gegeben!")
+    } finally {
+        process.env.JWT_SECRET = "HamZA.Secret42!"
+    }
+})
+
+test("verifyJWT testen ohne env",async () => {
+    const secret = "ldse"
+    const ttl = process.env.JWT_TTL;
+
+    const payload: JwtPayload = {
+        sub: pfleger.id,
+        role: "a"
+    }
+
+    let jwtString3 = sign(
+        payload,
+        secret!,
+        {
+            expiresIn: ttl,
+            algorithm: "HS256"
+        }
+    )
+    expect(() => verifyJWT(jwtString3)).toThrow("JWT is unvalid")
+    
 })

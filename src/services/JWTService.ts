@@ -1,14 +1,9 @@
 import { LoginResource } from "../Resources";
 import { login } from "./AuthenticationService";
-import { JwtPayload, sign } from "jsonwebtoken";
+import { JsonWebTokenError, JwtPayload, sign, verify } from "jsonwebtoken";
 import { Pfleger } from "../model/PflegerModel";
 
 export async function verifyPasswordAndCreateJWT(name: string, password: string): Promise<string | undefined> {
-    let findPfleger = await Pfleger.findOne({name}).exec();
-    if(!findPfleger){
-        throw new Error("Kein regristierter Pfleger auf diesem Namen!")
-    }
-
     const einlogen = await login(name, password);
     if(!einlogen){
         throw new Error("Login fehlgeschlagen!")
@@ -22,9 +17,8 @@ export async function verifyPasswordAndCreateJWT(name: string, password: string)
     }
 
     const payload: JwtPayload = {
-        sub: findPfleger.id,
-        role: einlogen.role,
-        exp: Number(ttl)
+        sub: einlogen.id,
+        role: einlogen.role
     }
 
     const jwtString = sign(
@@ -48,12 +42,25 @@ export function verifyJWT(jwtString: string | undefined): LoginResource {
     }
 
     if(!jwtString){
-        throw new Error("Falsch")
+        throw new JsonWebTokenError("JWT is unvalid")
     }
 
-    if(!jwtString!.includes(secret)){
-        throw new Error("Falsch")
+    try {
+        verify(jwtString, secret)
+    } catch (error) {
+        throw new JsonWebTokenError("JWT is unvalid")
     }
 
-    throw new Error("Function verifyJWT not implemented yet")
+    const payload = verify(jwtString, secret) as JwtPayload
+
+    const subId = payload.sub!
+    const pRole = payload.role
+    const pExp = payload.exp!
+    let loginResource: LoginResource = {
+        id: subId,
+        role: pRole,
+        exp: pExp
+    }
+    return loginResource
+    
 }
