@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { verifyJWT } from "../services/JWTService";
 
 declare global {
     namespace Express {
@@ -16,9 +17,37 @@ declare global {
 }
 
 export function requiresAuthentication(req: Request, res: Response, next: NextFunction) {
-    throw new Error("Function requiresAuthentication not implemented yet")
+    req.pflegerId = undefined;
+    try {
+        const jwtString = req.cookies.access_token;
+
+        const verifyJwt = verifyJWT(jwtString)
+        if(!verifyJwt){
+            res.status(401)
+        }
+        req.pflegerId = verifyJwt.id;
+        req.role = verifyJwt.role;
+        next()
+
+    } catch (err) {
+        res.status(401)
+        next(err)
+    }
 }
 
 export function optionalAuthentication(req: Request, res: Response, next: NextFunction) {
-    throw new Error("Function requiresAuthentication not implemented yet")
+    const jwtString = req.cookies.access_token
+    if(jwtString){
+        req.pflegerId = undefined;
+        try {
+            const verifyJwt = verifyJWT(jwtString);
+            req.pflegerId = verifyJwt.id
+            req.role = verifyJwt.role
+            next()
+        } catch (err) {
+            res.status(401)
+            next(err)
+        }
+    }
+    next()
 }

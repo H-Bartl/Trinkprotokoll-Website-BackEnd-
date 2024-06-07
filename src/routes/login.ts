@@ -37,7 +37,7 @@ loginRouter.post("/",
     loginRouter.get("/",async (req, res, next) => {
         const jwtString = req.cookies.access_token
         try {
-            const verifyJwt = await verifyJWT(jwtString);
+            const verifyJwt = verifyJWT(jwtString);
             res.status(200).send(verifyJwt);
         } catch (err) {
             res.send(false)
