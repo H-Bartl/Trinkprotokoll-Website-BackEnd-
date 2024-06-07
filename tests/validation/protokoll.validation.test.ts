@@ -10,6 +10,7 @@ import { createPfleger } from "../../src/services/PflegerService";
 import { createProtokoll } from "../../src/services/ProtokollService";
 import { dateToString } from "../../src/services/ServiceHelper";
 import { body } from "express-validator";
+import { performAuthentication, supertestWithAuth } from "../supertestWithAuth";
 
 let pomfrey: PflegerResource
 let fredsProtokoll: ProtokollResource
@@ -39,7 +40,8 @@ test("/api/protokoll GET, ungültige ID", async () => {
 })
 
 test("/api/protokoll PUT, verschiedene ID (params und body)", async () => {
-    const testee = supertest(app);
+    await performAuthentication("Poppy Pomfrey", "12345bcdABCD..;,.")
+    const testee = supertestWithAuth(app);
     // Hint: Gültige ID, aber für ein Protokoll ungültig!
     const invalidProtokollID = pomfrey.id;
     // Hint: Gebe hier Typ an, um im Objektliteral Fehler zu vermeiden!
@@ -54,7 +56,8 @@ test("/api/protokoll PUT, verschiedene ID (params und body)", async () => {
 });
 
 test("/api/protokoll, PUT constraints testen",async () => {
-    const testee = supertest(app);
+    await performAuthentication("Poppy Pomfrey", "12345bcdABCD..;,.")
+    const testee = supertestWithAuth(app);
     const create = await createProtokoll({
         patient: "Mazda",
         datum: dateToString(new Date),
@@ -71,7 +74,8 @@ test("/api/protokoll, PUT constraints testen",async () => {
 })
 
 test("/api/protokoll post, patient mind Zeichen nicht eingehalten",async () => {
-    const testee = supertest(app);
+    await performAuthentication("Poppy Pomfrey", "12345bcdABCD..;,.")
+    const testee = supertestWithAuth(app);
     const create: ProtokollResource = {
         patient: "",
         datum: dateToString(new Date),
@@ -82,7 +86,8 @@ test("/api/protokoll post, patient mind Zeichen nicht eingehalten",async () => {
 })
 
 test("/api/protokoll post, constraints datum und patient",async () => {
-    const testee = supertest(app);
+    await performAuthentication("Poppy Pomfrey", "12345bcdABCD..;,.")
+    const testee = supertestWithAuth(app);
     const create: ProtokollResource = {
         patient: "Fred Weasly",
         datum: "01.10.2023",
@@ -93,7 +98,8 @@ test("/api/protokoll post, constraints datum und patient",async () => {
 })
 
 test("/api/protokoll delete",async () => {
-    const testee = supertest(app);
+    await performAuthentication("Poppy Pomfrey", "12345bcdABCD..;,.")
+    const testee = supertestWithAuth(app);
     const response = await testee.delete(`/api/protokoll/ldlsa`);
     expect(response).toHaveValidationErrorsExactly({status: "400", params: "id"})
 })
