@@ -19,15 +19,15 @@ loginRouter.post("/",
         try {
             const logreq = matchedData(req);
             const jwtString = await verifyPasswordAndCreateJWT(logreq.name, logreq.password)
-            const verifyJwt = await verifyJWT(jwtString)
+            const loginRes = await verifyJWT(jwtString)
 
-            res.cookie("access_token", verifyJwt, {
+            res.cookie("access_token", jwtString, {
                 httpOnly: true,
                 expires: new Date(Date.now() + ttl * 1000),
                 secure: true,
                 sameSite: "none"
             })
-            res.status(201).send(verifyJwt);
+            res.status(201).send(loginRes);
         } catch (err) {
             res.status(401)
             next(err)
@@ -35,17 +35,14 @@ loginRouter.post("/",
     })
 
     loginRouter.get("/",async (req, res, next) => {
+        const jwtString = req.cookies.access_token
         try {
-            const jwtString = req.cookies.access_token
-            const verifyJwt = verifyJWT(jwtString);
-            if(!verifyJwt){
-                res.clearCookie(jwtString)
-                return res.status(404).send(false)
-            }
+            const verifyJwt = await verifyJWT(jwtString);
             res.status(200).send(verifyJwt);
         } catch (err) {
-            res.status(404);
-            next(err)
+            res.send(false)
+            res.clearCookie(jwtString)
+            // next(err)
         }
     })
 

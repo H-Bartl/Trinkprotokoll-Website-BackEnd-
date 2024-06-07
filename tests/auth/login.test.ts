@@ -18,7 +18,7 @@ test(`/api/login POST, Positivtest`, async () => {
     const loginData = { name: "John", password: "1234abcdABCD..;,." };
     const response = parseCookies(await testee.post(`/api/login`).send(loginData));
     expect(response).statusCode("2*")
-
+    
     // added by parseCookies, similar to express middleware cookieParser
     expect(response).toHaveProperty("cookies"); // added by parseCookies
     expect(response.cookies).toHaveProperty("access_token"); // the cookie with the JWT
@@ -32,3 +32,76 @@ test(`/api/login POST, Positivtest`, async () => {
     expect(rawCookie?.sameSite).toBe("None");
     expect(rawCookie?.secure).toBe(true);
  });
+
+test("/api/login POST, Negativtest",async () => {
+    const testee = supertest(app);
+    const loginData = {name: "Hamza", password: "ldlsdaw"}
+    const response = await testee.post(`/api/login/`).send(loginData)
+    expect(response.statusCode).toBe(400)
+})
+
+test("/api/login POST, Negativtest auf 401",async () => {
+    const testee = supertest(app);
+    const loginData = {name: "Hamza", password: "falschesPassword42!"}
+    const response = await testee.post(`/api/login/`).send(loginData)
+    expect(response.statusCode).toBe(401)
+})
+
+test("/api/login GET, Postivtest",async () => {
+    // await createPfleger({ name: "John", password: "1234abcdABCD..;,.", admin: false })
+    // const testee = supertest(app);
+    // const loginData = { name: "John", password: "1234abcdABCD..;,." };
+    // const response = parseCookies(await testee.post(`/api/login`).send(loginData));
+    // expect(response).statusCode("2*")
+
+    await createPfleger({name: "Hamza", password: "richtigesPassword42!", admin: true});
+    const testee = supertest(app);
+    const loginData = {name: "Hamza", password: "richtigesPassword42!"}
+    const erstellt = parseCookies(await testee.post(`/api/login`).send(loginData));
+    expect(erstellt.statusCode).toBe(201)
+    expect(erstellt.cookies.access_token).toBeDefined()
+
+
+
+
+    const response = parseCookies(await testee.get(`/api/login`).set("Cookie",
+    "access_token=" + erstellt.cookies.access_token))
+    expect(response.statusCode).toBe(200)
+})
+
+test("/api/login GET, Negativtest",async () => {
+    await createPfleger({name: "Hamza", password: "richtigesPassword42!", admin: true});
+    const testee = supertest(app);
+    const loginData = {name: "Hamza", password: "richtigesPassword42!"}
+    const erstellt = parseCookies(await testee.post(`/api/login`).send(loginData));
+
+    const response = parseCookies(await testee.get(`/api/login`).set("Cookie",
+    "access_token=" + erstellt))
+    expect(response.body).toBe(false)
+})
+
+test("/api/login Delete, Positivtest",async () => {
+    await createPfleger({name: "Hamza", password: "richtigesPassword42!", admin: true});
+    const testee = supertest(app);
+    const loginData = {name: "Hamza", password: "richtigesPassword42!"}
+    const erstellt = parseCookies(await testee.post(`/api/login`).send(loginData));
+
+    const response = parseCookies(await testee.delete(`/api/login`).set("Cookie",
+    "access_token=" + erstellt.cookies.access_token))
+    expect(response.statusCode).toBe(204)
+    expect(response.cookies.access_token).toBeUndefined()
+})
+
+test("/api/login Get, Negativtest false",async () => {
+    await createPfleger({name: "Hamza", password: "richtigesPassword42!", admin: true});
+    const testee = supertest(app);
+    const loginData = {name: "Hamza", password: "richtigesPassword42!"}
+    const response = parseCookies(await testee.post(`/api/login`).send(loginData));
+
+    const deleted = parseCookies(await testee.delete(`/api/login/`).set("Cookie",
+    "access_token=" + response.cookies.access_token))
+
+    const response2 = parseCookies(await testee.get(`/api/login`).set("Cookie",
+    "access_token=" + deleted.cookies.access_token))
+    expect(response2.body).toBe(false)
+})
