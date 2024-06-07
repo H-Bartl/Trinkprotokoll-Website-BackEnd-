@@ -6,6 +6,7 @@ import { protokollRouter } from "../../src/routes/protokoll";
 import { Types } from "mongoose";
 import { createProtokoll } from "../../src/services/ProtokollService";
 import { dateToString } from "../../src/services/ServiceHelper";
+import { performAuthentication, supertestWithAuth } from "../supertestWithAuth";
 
 let idPfleger1:string;
 let idPfleger2:string;
@@ -40,13 +41,15 @@ test("/api/pfleger/alle get, 3 pfleger",async () => {
 })
 
 test("/api/pfleger/ post",async () => {
+    await performAuthentication("Hamza", "Hamza6551!")
     let pflegerResource:PflegerResource = ({
         name: "Toyota",
         password: "Hamza6551!",
         admin: false
     })
-    const testee = supertest(app)
-    const response = await testee.post(`/api/pfleger`).send(pflegerResource)
+    const testeeAuth = supertestWithAuth(app)
+    const response = await testeeAuth.post(`/api/pfleger`).send(pflegerResource)
+    
     expect(response.statusCode).toBe(201)
     expect(response.body.password).toBeUndefined()
     expect(response.body.name).toBe("Toyota")
@@ -54,30 +57,33 @@ test("/api/pfleger/ post",async () => {
 })
 
 test("/api/pfleger/ post, negativ Test duplicate",async () => {
+    await performAuthentication("Hamza", "Hamza6551!")
     let pflegerResource:PflegerResource = ({
         name: "Hamza",
         password: "Hamza6551!",
         admin: false
     })
-    const testee = supertest(app)
+    const testee = supertestWithAuth(app)
     const response = await testee.post(`/api/pfleger`).send(pflegerResource)
     expect(response.statusCode).toBe(404)
 })
 
 test("/api/pfleger/ post",async () => {
-    const testee = supertest(app)
+    await performAuthentication("Hamza", "Hamza6551!")
+    const testee = supertestWithAuth(app)
     const response = await testee.post(`/api/pfleger/`)
     expect(response.statusCode).toBe(400)
 })
 
 test("/api/pfleger/:id put",async () => {
+    await performAuthentication("Hamza", "Hamza6551!")
     let pflegerResource:PflegerResource = ({
         id: idPfleger1,
         name: "Toyota",
         password: "Hamza6551!",
         admin: false
     })
-    const testee = supertest(app)
+    const testee = supertestWithAuth(app)
     const response = await testee.put(`/api/pfleger/${idPfleger1}/`).send(pflegerResource)
     expect(response.statusCode).toBe(200)
     expect(response.body.name).toBe("Toyota")
@@ -86,6 +92,8 @@ test("/api/pfleger/:id put",async () => {
 })
 
 test("/api/pfleger/:id put",async () => {
+    await performAuthentication("Hamza", "Hamza6551!")
+
     let falseId = new Types.ObjectId().toString()
     let pflegerResource:PflegerResource = ({
         id: idProtokoll1,
@@ -93,19 +101,21 @@ test("/api/pfleger/:id put",async () => {
         password: "Hamza6551!",
         admin: false
     })
-    const testee = supertest(app)
+    const testee = supertestWithAuth(app)
     const response = await testee.put(`/api/pfleger/${pflegerResource.id}`).send(pflegerResource)
     expect(response.statusCode).toBe(404)
 })
 
 test("/api/pfleger/:id put",async () => {
+    await performAuthentication("Hamza", "Hamza6551!")
+
     let pflegerResource:PflegerResource = ({
         id: idPfleger1,
         name: "Toyota",
         password: "Hamza6551!",
         admin: false
     })
-    const testee = supertest(app)
+    const testee = supertestWithAuth(app)
     const response = await testee.put(`/api/pfleger/${idPfleger2}`).send(pflegerResource)
     expect(response.statusCode).toBe(400)
     const response2 = await testee.put(`/api/pfleger`)
@@ -113,7 +123,8 @@ test("/api/pfleger/:id put",async () => {
 })
 
 test("/api/pfleger/:id delete",async () => {
-    const testee = supertest(app)
+    await performAuthentication("Hamza", "Hamza6551!")
+    const testee = supertestWithAuth(app)
     const response = await testee.delete(`/api/pfleger/${idPfleger1}/`)
     expect(response.statusCode).toBe(204)
 })
@@ -125,8 +136,9 @@ test("/api/pfleger/:id delete, Ohne Id",async () => {
 })
 
 test("/api/pfleger/:id delete, Falsche Id",async () => {
+    await performAuthentication("Hamza", "Hamza6551!")
     let falseId = new Types.ObjectId().toString()
-    const testee = supertest(app)
+    const testee = supertestWithAuth(app)
     const response = await testee.delete(`/api/pfleger/${falseId}/`)
     expect(response.statusCode).toBe(404)
 })

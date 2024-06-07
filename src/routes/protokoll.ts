@@ -3,12 +3,14 @@ import { getAlleEintraege } from "../services/EintragService";
 import { createProtokoll, deleteProtokoll, getAlleProtokolle, getProtokoll, updateProtokoll } from "../services/ProtokollService";
 import { body, matchedData, param, validationResult } from "express-validator";
 import { ProtokollResource } from "../Resources";
+import { requiresAuthentication, optionalAuthentication } from "./authentication";
 
 
 export const protokollRouter = express.Router();
 
 protokollRouter.get("/:id/eintraege", 
     param("id").isMongoId(),
+    optionalAuthentication,
     async (req, res, next) => {
         const errors = validationResult(req)
         if(!errors.isEmpty()) {
@@ -24,7 +26,7 @@ protokollRouter.get("/:id/eintraege",
         }
 })
 
-protokollRouter.get("/alle",async (req,res,next) => {
+protokollRouter.get("/alle", optionalAuthentication, async (req,res,next) => {
         const protId = req.body.ersteller
         const protokolle = await getAlleProtokolle(protId)
         res.send(protokolle)
@@ -39,6 +41,7 @@ protokollRouter.post("/",
     body("erstellerName").optional().isString().isLength({min: 1, max: 100}),
     body("updatedAt").optional().isString().isLength({min: 1, max: 100}),
     body("gesamtMenge").optional().isNumeric(),
+    requiresAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
@@ -73,6 +76,7 @@ protokollRouter.post("/",
 
 protokollRouter.get("/:id",
     param("id").isMongoId(),
+    optionalAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req)
         if(!errors.isEmpty()){
@@ -99,6 +103,7 @@ protokollRouter.put("/:id",
     body("erstellerName").optional().isString().isLength({min: 1, max: 100}),
     body("updatedAt").optional().isString().isLength({min: 1, max: 100}),
     body("gesamtMenge").optional().isNumeric(),
+    requiresAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req).array()
         if(req.params!.id !== req.body.id){
@@ -146,6 +151,7 @@ protokollRouter.put("/:id",
 
 protokollRouter.delete("/:id",
     param("id").isMongoId(),
+    requiresAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req)
         if(!errors.isEmpty()){

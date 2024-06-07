@@ -2,11 +2,12 @@ import express from "express";
 import { createPfleger, deletePfleger, getAllePfleger, updatePfleger } from "../services/PflegerService";
 import { PflegerResource } from "../Resources";
 import { body, matchedData, param, validationResult } from "express-validator";
+import { optionalAuthentication, requiresAuthentication } from "./authentication";
 
 
 export const pflegerRouter = express.Router();
 
-pflegerRouter.get("/alle",async (req, res, next) => {
+pflegerRouter.get("/alle", optionalAuthentication ,async (req, res, next) => {
     const pfleger = await getAllePfleger();
     res.send(pfleger); // 200 default
     
@@ -16,6 +17,7 @@ pflegerRouter.post("/",
     body("name").isString().isLength({min: 3, max: 100}),
     body("password").isString().isStrongPassword(),
     body("admin").isBoolean(),
+    requiresAuthentication,
     async (req, res, next) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()){
@@ -37,6 +39,7 @@ pflegerRouter.put("/:id",
     body("name").isString().isLength({min: 3, max: 100}),
     body("password").optional().isString().isStrongPassword(),
     body("admin").isBoolean(),
+    requiresAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req).array()
         if(req.params!.id !== req.body.id){
@@ -66,6 +69,7 @@ pflegerRouter.put("/:id",
 
 pflegerRouter.delete("/:id",
     param("id").isMongoId(),
+    requiresAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req);
         if(!errors.isEmpty()){
