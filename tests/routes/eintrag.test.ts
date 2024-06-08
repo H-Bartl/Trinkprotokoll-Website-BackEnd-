@@ -38,7 +38,7 @@ beforeEach(async () => {
     idEintrag1 = eintrag1.id!;
 })
 
-test("/api/eintrag/ post",async () => {
+test("/api/eintrag/ post mit auth",async () => {
     await performAuthentication("Hamza", "3421lsdsA!")
     let eintragResource: EintragResource = ({
         getraenk: "Cola",
@@ -50,6 +50,18 @@ test("/api/eintrag/ post",async () => {
     const response = await testee.post(`/api/eintrag/`).send(eintragResource)
     expect(response.statusCode).toBe(201)
     expect(response.body.erstellerName).toBe("Hamza")
+})
+
+test("/api/eintrag/ post ohne auth",async () => {
+    let eintragResource: EintragResource = ({
+        getraenk: "Cola",
+        menge: 330,
+        ersteller: idPfleger1,
+        protokoll: idProtokoll1
+    })
+    const testee = supertest(app);
+    const response = await testee.post(`/api/eintrag/`).send(eintragResource)
+    expect(response.statusCode).toBe(401)
 })
 
 test("/api/eintrag/ post, negativ test",async () => {
@@ -65,8 +77,16 @@ test("/api/eintrag/ post, negativ test",async () => {
     expect(response.statusCode).toBe(404)
 })
 
-test("/api/eintrag/:id get",async () => {
+test("/api/eintrag/:id get optional auth ohne",async () => {
     const testee = supertest(app);
+    const response = await testee.get(`/api/eintrag/${idEintrag1}/`)
+    expect(response.statusCode).toBe(200)
+    expect(response.body.erstellerName).toBe("Hamza")
+})
+
+test("/api/eintrag/:id get mit optional auth",async () => {
+    await performAuthentication("Hamza", "3421lsdsA!")
+    const testee = supertestWithAuth(app);
     const response = await testee.get(`/api/eintrag/${idEintrag1}/`)
     expect(response.statusCode).toBe(200)
     expect(response.body.erstellerName).toBe("Hamza")

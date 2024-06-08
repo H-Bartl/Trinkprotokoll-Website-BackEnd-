@@ -43,10 +43,10 @@ export function optionalAuthentication(req: Request, res: Response, next: NextFu
             const verifyJwt = verifyJWT(jwtString);
             req.pflegerId = verifyJwt.id
             req.role = verifyJwt.role
-            next()
+            return next()
         } catch (err) {
-            res.status(401)
-            next(err)
+            res.sendStatus(401)
+            return next(err)
         }
     }
     next()
