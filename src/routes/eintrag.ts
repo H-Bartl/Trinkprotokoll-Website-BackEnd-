@@ -2,6 +2,7 @@ import express from "express";
 import { createEintrag, deleteEintrag, getEintrag, updateEintrag } from "../services/EintragService";
 import { body, matchedData, param, validationResult } from "express-validator";
 import { EintragResource } from "../Resources";
+import { requiresAuthentication, optionalAuthentication } from "./authentication";
 
 export const eintragRouter = express.Router();
 
@@ -13,6 +14,7 @@ eintragRouter.post("/",
     body("kommentar").optional().isString().isLength({min: 1, max: 1000}),
     body("erstellerName").optional().isString().isLength({min: 1, max: 100}),
     body("createdAt").optional().isString().isLength({min: 1, max: 100}),
+    requiresAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
@@ -44,6 +46,7 @@ eintragRouter.post("/",
 
 eintragRouter.get("/:id",
     param("id").isMongoId(),
+    optionalAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req)
         if(!errors.isEmpty()) {
@@ -69,6 +72,7 @@ eintragRouter.put("/:id",
     body("erstellerName").optional().isString().isLength({min: 1, max: 100}),
     body("createdAt").optional().isString().isLength({min: 1, max: 100}),
     body("protokoll").isMongoId(),
+    requiresAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req).array()
         if(req.params!.id !== req.body.id){
@@ -98,6 +102,7 @@ eintragRouter.put("/:id",
 
 eintragRouter.delete("/:id",
     param("id").isMongoId(),
+    requiresAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req)
         if(!errors.isEmpty()){

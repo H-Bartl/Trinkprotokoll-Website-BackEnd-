@@ -5,6 +5,7 @@ import { createProtokoll } from "../../src/services/ProtokollService";
 import { dateToString } from "../../src/services/ServiceHelper";
 import { createEintrag } from "../../src/services/EintragService";
 import { EintragResource } from "../../src/Resources";
+import { performAuthentication, supertestWithAuth } from "../supertestWithAuth";
 
 
 let idPfleger1:string;
@@ -13,7 +14,7 @@ let idEintrag1:string;
 
 beforeEach(async () => {
     const pfleger1 = await createPfleger({
-        name: "Hamza", password: "3421", admin: true
+        name: "Hamza", password: "3421lsdsA!", admin: true
     })
     idPfleger1 = pfleger1.id!;
     const protokoll1 = await createProtokoll({
@@ -38,26 +39,28 @@ beforeEach(async () => {
 })
 
 test("/api/eintrag/ post",async () => {
+    await performAuthentication("Hamza", "3421lsdsA!")
     let eintragResource: EintragResource = ({
         getraenk: "Cola",
         menge: 330,
         ersteller: idPfleger1,
         protokoll: idProtokoll1
     })
-    const testee = supertest(app);
+    const testee = supertestWithAuth(app);
     const response = await testee.post(`/api/eintrag/`).send(eintragResource)
     expect(response.statusCode).toBe(201)
     expect(response.body.erstellerName).toBe("Hamza")
 })
 
 test("/api/eintrag/ post, negativ test",async () => {
+    await performAuthentication("Hamza", "3421lsdsA!")
     let eintragResource: EintragResource = ({
         getraenk: "Cola",
         menge: 330,
         ersteller: idProtokoll1,
         protokoll: idProtokoll1
     })
-    const testee = supertest(app);
+    const testee = supertestWithAuth(app);
     const response = await testee.post(`/api/eintrag/`).send(eintragResource)
     expect(response.statusCode).toBe(404)
 })
@@ -76,6 +79,7 @@ test("/api/eintrag/:id get, falsche id",async () => {
 })
 
 test("/api/eintrag/:id put",async () => {
+    await performAuthentication("Hamza", "3421lsdsA!")
     let eintragResource: EintragResource = ({
         id: idEintrag1,
         getraenk: "Cola",
@@ -83,7 +87,7 @@ test("/api/eintrag/:id put",async () => {
         ersteller: idPfleger1,
         protokoll: idProtokoll1
     })
-    const testee = supertest(app);
+    const testee = supertestWithAuth(app);
     const response = await testee.put(`/api/eintrag/${idEintrag1}/`).send(eintragResource)
     expect(response.statusCode).toBe(200)
     expect(response.body.erstellerName).toBe("Hamza")
@@ -91,6 +95,7 @@ test("/api/eintrag/:id put",async () => {
 })
 
 test("/api/eintrag/:id put, negativ testen",async () => {
+    await performAuthentication("Hamza", "3421lsdsA!")
     let eintragResource: EintragResource = ({
         id: idPfleger1,
         getraenk: "Cola",
@@ -98,20 +103,22 @@ test("/api/eintrag/:id put, negativ testen",async () => {
         ersteller: idPfleger1,
         protokoll: idProtokoll1
     })
-    const testee = supertest(app);
+    const testee = supertestWithAuth(app);
     const response = await testee.put(`/api/eintrag/${idPfleger1}/`).send(eintragResource)
     expect(response.statusCode).toBe(404)
 })
 
 test("/api/eintrag/:id delete",async () => {
-    const testee = supertest(app)
+    await performAuthentication("Hamza", "3421lsdsA!")
+    const testee = supertestWithAuth(app)
     const response = await testee.delete(`/api/eintrag/${idEintrag1}/`)
     expect(response.statusCode).toBe(204)
     expect(response.body).toBeNull
 })
 
 test("/api/eintrag/:id delete, negativ tests falsche Id",async () => {
-    const testee = supertest(app)
+    await performAuthentication("Hamza", "3421lsdsA!")
+    const testee = supertestWithAuth(app)
     const response = await testee.delete(`/api/eintrag/${idPfleger1}`)
     expect(response.statusCode).toBe(404)
 })

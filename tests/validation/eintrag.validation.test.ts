@@ -9,6 +9,7 @@ import { createProtokoll } from "../../src/services/ProtokollService";
 import { dateToString } from "../../src/services/ServiceHelper";
 import { createEintrag } from "../../src/services/EintragService";
 import app from "../../src/app";
+import { performAuthentication, supertestWithAuth } from "../supertestWithAuth";
 
 let pfleger1: PflegerResource;
 let idPfleger1: string;
@@ -51,7 +52,8 @@ test("/api/eintrag GET, ungültige ID", async () => {
 })
 
 test("/api/eintrag POST",async () => {
-    const testee = supertest(app);
+    await performAuthentication("Hamza", "Kdase4231?")
+    const testee = supertestWithAuth(app);
     
     const create: EintragResource = {
         getraenk: "",
@@ -65,7 +67,8 @@ test("/api/eintrag POST",async () => {
 })
 
 test("/api/eintrag POST, closed Protokoll error",async () => {
-    const testee = supertest(app)
+    await performAuthentication("Hamza", "Kdase4231?")
+    const testee = supertestWithAuth(app)
     const closedProt = await createProtokoll({
         patient: "Benz", 
         datum: dateToString(new Date),
@@ -85,10 +88,11 @@ test("/api/eintrag POST, closed Protokoll error",async () => {
 })
 
 test("/api/protokoll PUT, verschiedene ID (params und body)", async () => {
-    const testee = supertest(app);
-    // Hint: Gültige ID, aber für ein Protokoll ungültig!
+    await performAuthentication("Hamza", "Kdase4231?")
+    const testee = supertestWithAuth(app);
+
     const invalidID = pfleger1.id;
-    // Hint: Gebe hier Typ an, um im Objektliteral Fehler zu vermeiden!
+    
     const update: EintragResource = {
         ...eintrag1,
         id: invalidID
@@ -99,7 +103,8 @@ test("/api/protokoll PUT, verschiedene ID (params und body)", async () => {
 });
 
 test("/api/protokoll DELETE",async () => {
-    const testee = supertest(app)
+    await performAuthentication("Hamza", "Kdase4231?")
+    const testee = supertestWithAuth(app)
     const response = await testee.delete(`/api/eintrag/lslsd/`);
     expect(response).toHaveValidationErrorsExactly({status: "400", params: "id"})
 })
