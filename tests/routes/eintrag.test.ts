@@ -98,7 +98,7 @@ test("/api/eintrag/:id get, falsche id",async () => {
     expect(response.statusCode).toBe(404)
 })
 
-test("/api/eintrag/:id put",async () => {
+test("/api/eintrag/:id put mit auth",async () => {
     await performAuthentication("Hamza", "3421lsdsA!")
     let eintragResource: EintragResource = ({
         id: idEintrag1,
@@ -112,6 +112,19 @@ test("/api/eintrag/:id put",async () => {
     expect(response.statusCode).toBe(200)
     expect(response.body.erstellerName).toBe("Hamza")
     expect(response.body.getraenk).toBe("Cola")
+})
+
+test("/api/eintrag/:id put ohne auth",async () => {
+    let eintragResource: EintragResource = ({
+        id: idEintrag1,
+        getraenk: "Cola",
+        menge: 330,
+        ersteller: idPfleger1,
+        protokoll: idProtokoll1
+    })
+    const testee = supertest(app);
+    const response = await testee.put(`/api/eintrag/${idEintrag1}/`).send(eintragResource)
+    expect(response.statusCode).toBe(401)
 })
 
 test("/api/eintrag/:id put, negativ testen",async () => {
@@ -128,12 +141,18 @@ test("/api/eintrag/:id put, negativ testen",async () => {
     expect(response.statusCode).toBe(404)
 })
 
-test("/api/eintrag/:id delete",async () => {
+test("/api/eintrag/:id delete mit auth",async () => {
     await performAuthentication("Hamza", "3421lsdsA!")
     const testee = supertestWithAuth(app)
     const response = await testee.delete(`/api/eintrag/${idEintrag1}/`)
     expect(response.statusCode).toBe(204)
     expect(response.body).toBeNull
+})
+
+test("/api/eintrag/:id delete ohne auth",async () => {
+    const testee = supertest(app)
+    const response = await testee.delete(`/api/eintrag/${idEintrag1}/`)
+    expect(response.statusCode).toBe(401)
 })
 
 test("/api/eintrag/:id delete, negativ tests falsche Id",async () => {

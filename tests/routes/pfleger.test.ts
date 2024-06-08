@@ -51,7 +51,7 @@ test("/api/pfleger/alle get, 3 pfleger",async () => {
     expect(response.body[0].password).toBeUndefined()
 })
 
-test("/api/pfleger/ post",async () => {
+test("/api/pfleger/ post mit auth",async () => {
     await performAuthentication("Hamza", "Hamza6551!")
     let pflegerResource:PflegerResource = ({
         name: "Toyota",
@@ -65,6 +65,18 @@ test("/api/pfleger/ post",async () => {
     expect(response.body.password).toBeUndefined()
     expect(response.body.name).toBe("Toyota")
     expect(response.body.admin).toBeFalsy()
+})
+
+test("/api/pfleger/ pos ohne auth",async () => {
+    let pflegerResource:PflegerResource = ({
+        name: "Toyota",
+        password: "Hamza6551!",
+        admin: false
+    })
+    const testeeAuth = supertest(app)
+    const response = await testeeAuth.post(`/api/pfleger`).send(pflegerResource)
+    
+    expect(response.statusCode).toBe(401)
 })
 
 test("/api/pfleger/ post, negativ Test duplicate",async () => {
@@ -86,7 +98,7 @@ test("/api/pfleger/ post",async () => {
     expect(response.statusCode).toBe(400)
 })
 
-test("/api/pfleger/:id put",async () => {
+test("/api/pfleger/:id put mit auth",async () => {
     await performAuthentication("Hamza", "Hamza6551!")
     let pflegerResource:PflegerResource = ({
         id: idPfleger1,
@@ -100,6 +112,18 @@ test("/api/pfleger/:id put",async () => {
     expect(response.body.name).toBe("Toyota")
     expect(response.body.password).toBeUndefined()
     expect(response.body.admin).toBeFalsy()
+})
+
+test("/api/pfleger/:id put ohne auth",async () => {
+    let pflegerResource:PflegerResource = ({
+        id: idPfleger1,
+        name: "Toyota",
+        password: "Hamza6551!",
+        admin: false
+    })
+    const testee = supertest(app)
+    const response = await testee.put(`/api/pfleger/${idPfleger1}/`).send(pflegerResource)
+    expect(response.statusCode).toBe(401)
 })
 
 test("/api/pfleger/:id put",async () => {
@@ -140,9 +164,15 @@ test("/api/pfleger/:id delete",async () => {
     expect(response.statusCode).toBe(204)
 })
 
+test("/api/pfleger/:id delete ohne auth",async () => {
+    const testee = supertest(app)
+    const response = await testee.delete(`/api/pfleger/${idPfleger1}/`)
+    expect(response.statusCode).toBe(401)
+})
+
 test("/api/pfleger/:id delete, Ohne Id",async () => {
     const testee = supertest(app)
-    const response = await testee.delete(`/api/pfleger`)
+    const response = await testee.delete(`/api/pfleger/`)
     expect(response.statusCode).toBe(404)
 })
 
