@@ -11,6 +11,8 @@ import { performAuthentication, supertestWithAuth } from "../supertestWithAuth";
 let idPfleger1:string;
 let idProtokoll1:string;
 let idEintrag1:string;
+let idEintrag2: string
+let protID:string
 
 beforeEach(async () => {
     const pfleger1 = await createPfleger({
@@ -22,7 +24,7 @@ beforeEach(async () => {
     })
     idProtokoll1 = protokoll1.id!;
     const pfleger2 = await createPfleger({
-        name: "Mert", password: "3da241", admin: false
+        name: "Mert", password: "OsdeE32!", admin: true
     })
 
     const pfleger3 = await createPfleger({
@@ -36,6 +38,18 @@ beforeEach(async () => {
         protokoll: idProtokoll1
     })
     idEintrag1 = eintrag1.id!;
+
+    const protokollnopublic = await createProtokoll({
+        patient: "Massiv", datum: dateToString(new Date), ersteller: idPfleger1, public: false
+    })
+    const eintrag2 = await createEintrag({
+        getraenk: "Wasser",
+        menge: 200,
+        ersteller: idPfleger1,
+        protokoll: protokollnopublic.id!
+    })
+    idEintrag2 = eintrag2.id!
+    protID = protokollnopublic.id!
 })
 
 test("/api/eintrag/ post mit auth",async () => {
@@ -50,6 +64,32 @@ test("/api/eintrag/ post mit auth",async () => {
     const response = await testee.post(`/api/eintrag/`).send(eintragResource)
     expect(response.statusCode).toBe(201)
     expect(response.body.erstellerName).toBe("Hamza")
+})
+
+test("/api/eintrag/ post mit auth",async () => {
+    await performAuthentication("Mert", "OsdeE32!")
+    let eintragResource: EintragResource = ({
+        getraenk: "Cola",
+        menge: 330,
+        ersteller: idPfleger1,
+        protokoll: idProtokoll1
+    })
+    const testee = supertestWithAuth(app);
+    const response = await testee.post(`/api/eintrag/`).send(eintragResource)
+    expect(response.statusCode).toBe(201)
+})
+
+test("/api/eintrag/ post mit auth",async () => {
+    await performAuthentication("Mert", "OsdeE32!")
+    let eintragResource: EintragResource = ({
+        getraenk: "Cola",
+        menge: 330,
+        ersteller: idPfleger1,
+        protokoll: protID
+    })
+    const testee = supertestWithAuth(app);
+    const response = await testee.post(`/api/eintrag/`).send(eintragResource)
+    expect(response.statusCode).toBe(403)
 })
 
 test("/api/eintrag/ post ohne auth",async () => {
@@ -92,6 +132,13 @@ test("/api/eintrag/:id get mit optional auth",async () => {
     expect(response.body.erstellerName).toBe("Hamza")
 })
 
+test("/api/eintrag/:id get mit optional auth",async () => {
+    await performAuthentication("Mert", "OsdeE32!")
+    const testee = supertestWithAuth(app);
+    const response = await testee.get(`/api/eintrag/${idEintrag2}/`)
+    expect(response.statusCode).toBe(403)
+})
+
 test("/api/eintrag/:id get, falsche id",async () => {
     const testee = supertest(app);
     const response = await testee.get(`/api/eintrag/${idPfleger1}/`)
@@ -112,6 +159,20 @@ test("/api/eintrag/:id put mit auth",async () => {
     expect(response.statusCode).toBe(200)
     expect(response.body.erstellerName).toBe("Hamza")
     expect(response.body.getraenk).toBe("Cola")
+})
+
+test("/api/eintrag/:id put mit auth",async () => {
+    await performAuthentication("Mert", "OsdeE32!")
+    let eintragResource: EintragResource = ({
+        id: idEintrag1,
+        getraenk: "Cola",
+        menge: 330,
+        ersteller: idPfleger1,
+        protokoll: idProtokoll1
+    })
+    const testee = supertestWithAuth(app);
+    const response = await testee.put(`/api/eintrag/${idEintrag1}/`).send(eintragResource)
+    expect(response.statusCode).toBe(403)
 })
 
 test("/api/eintrag/:id put ohne auth",async () => {
@@ -147,6 +208,13 @@ test("/api/eintrag/:id delete mit auth",async () => {
     const response = await testee.delete(`/api/eintrag/${idEintrag1}/`)
     expect(response.statusCode).toBe(204)
     expect(response.body).toBeNull
+})
+
+test("/api/eintrag/:id delete mit auth",async () => {
+    await performAuthentication("Mert", "OsdeE32!")
+    const testee = supertestWithAuth(app)
+    const response = await testee.delete(`/api/eintrag/${idEintrag1}/`)
+    expect(response.statusCode).toBe(403)
 })
 
 test("/api/eintrag/:id delete ohne auth",async () => {

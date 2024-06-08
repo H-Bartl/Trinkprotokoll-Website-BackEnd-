@@ -26,13 +26,10 @@ eintragRouter.post("/",
             const prot = await getProtokoll(eintrag.protokoll)
             const create = await createEintrag(eintrag);
 
-            if(prot.public){
-                res.status(201).send(create)
-            }
-            if(prot.public=== false && req.pflegerId === prot.ersteller){
+            if(prot.public || (prot.public=== false && req.pflegerId === prot.ersteller)){
                 res.status(201).send(create)
             }else {
-                res.status(403)
+                res.sendStatus(403)
             }
         } catch (err) {
             let errorClosed = []
@@ -67,11 +64,10 @@ eintragRouter.get("/:id",
             const getEint = await getEintrag(id.id);
 
             const prot = await getProtokoll(getEint.protokoll)
-            if(prot.public === true) res.send(getEint)
-            if(prot.public === false && req.pflegerId === getEint.ersteller || req.pflegerId === prot.ersteller){
+            if(prot.public || (prot.public === false && req.pflegerId === getEint.ersteller || req.pflegerId === prot.ersteller)){
                 res.send(getEint)
             }else{
-                res.status(403)
+                res.sendStatus(403)
             }
         } catch (err) {
             res.status(404);
@@ -116,7 +112,7 @@ eintragRouter.put("/:id",
                 const updated = await updateEintrag(resource)
                 res.send(updated)
             }else{
-                res.status(403)
+                res.sendStatus(403)
             }
         } catch (err) {
             res.status(404);
@@ -140,7 +136,7 @@ eintragRouter.delete("/:id",
                 const deleted = await deleteEintrag(id)
                 res.status(204).send(deleted)
             }else {
-                res.status(403)
+                res.sendStatus(403)
             }
         } catch (err) {
             res.status(404)
