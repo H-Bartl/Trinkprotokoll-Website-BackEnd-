@@ -107,12 +107,12 @@ test("/api/protokoll/:id get",async () => {
     expect(response.body.gesamtMenge).toBe(0)
 })
 
-// test("/api/protokoll/:id get",async () => {
-//     await performAuthentication("Hofrat Behrens", "geheiM42!")
-//     const testee = supertest(app);
-//     const response = await testee.get(`/api/protokoll/${protID}/`);
-//     expect(response.statusCode).toBe(403)
-// })
+test("/api/protokoll/:id get",async () => {
+    await performAuthentication("Hofrat Behrens", "geheiM42!")
+    const testee = supertest(app);
+    const response = await testee.get(`/api/protokoll/${protID}/`);
+    expect(response.statusCode).toBe(403)
+})
 
 test("/api/protokoll/:id get",async () => {
     for (let i = 1; i <= 5; i++) {
@@ -147,6 +147,20 @@ test("/api/protokoll/:id put",async () => {
     expect(response.body.erstellerName).toBe("Hofrat Behrens")
 })
 
+test("/api/protokoll/:id put",async () => {
+    await performAuthentication("Keko", "kEkooo55!")
+    let protResource: ProtokollResource= ({
+        id: idProtokoll,
+        patient: "Toyota",
+        datum: dateToString(new Date),
+        ersteller: idBehrens,
+        public: true
+    })
+    const testee = supertestWithAuth(app);
+    const response = await testee.put(`/api/protokoll/${idProtokoll}/`).send(protResource);
+    expect(response.statusCode).toBe(403)
+})
+
 test("/api/protokoll/:id put, falsche Id",async () => {
     await performAuthentication("Hofrat Behrens", "geheiM42!")
     let protResource: ProtokollResource= ({
@@ -167,6 +181,13 @@ test("/api/protokoll/:id delete",async () => {
     const response = await testee.delete(`/api/protokoll/${idProtokoll}/`)
     expect(response.statusCode).toBe(204)
     expect(response.body).toBeNull
+})
+
+test("/api/protokoll/:id delete",async () => {
+    await performAuthentication("Keko", "kEkooo55!")
+    const testee = supertestWithAuth(app);
+    const response = await testee.delete(`/api/protokoll/${idProtokoll}/`)
+    expect(response.statusCode).toBe(403)
 })
 
 test("/api/protokoll/:id delete",async () => {

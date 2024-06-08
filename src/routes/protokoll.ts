@@ -90,7 +90,7 @@ protokollRouter.get("/:id",
             if(getProt.public === true || getProt.public === false && req.pflegerId === getProt.ersteller) {
                 res.send(getProt)
             } else{
-                res.status(403)
+                res.sendStatus(403)
             }
         } catch (err) {
             res.status(404);
@@ -128,11 +128,14 @@ protokollRouter.put("/:id",
         if(errors.length > 0){
             return res.status(400).send({errors: errors})
         }
+
         try {
-            const resource = matchedData(req) as ProtokollResource
             const prot = await getProtokoll(req.params.id)
 
-            if(req.pflegerId !== prot.ersteller) res.status(403)
+            if(req.pflegerId !== prot.ersteller) {
+                res.sendStatus(403)
+            }
+            const resource = matchedData(req) as ProtokollResource
 
             const updated = await updateProtokoll(resource)
             res.send(updated)
@@ -172,8 +175,9 @@ protokollRouter.delete("/:id",
             const prot = await getProtokoll(id)
             const deleted = await deleteProtokoll(id)
 
-            if(req.pflegerId !== prot.ersteller) res.status(403)
-
+            if(req.pflegerId !== prot.ersteller) {
+                res.sendStatus(403)
+            }
             res.status(204).send(deleted)
         } catch (err) {
             res.status(404);

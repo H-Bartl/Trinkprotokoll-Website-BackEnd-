@@ -67,7 +67,7 @@ test("/api/pfleger/ post mit auth",async () => {
     expect(response.body.admin).toBeFalsy()
 })
 
-test("/api/pfleger/ post mit auth",async () => {
+test("/api/pfleger/ post mit user fehler",async () => {
     await performAuthentication("Mert", "3da241!MM")
     let pflegerResource:PflegerResource = ({
         name: "Toyota",
@@ -127,6 +127,19 @@ test("/api/pfleger/:id put mit auth",async () => {
     expect(response.body.admin).toBeFalsy()
 })
 
+test("/api/pfleger/:id put mit user fehler",async () => {
+    await performAuthentication("Mert", "3da241!MM")
+    let pflegerResource:PflegerResource = ({
+        id: idPfleger1,
+        name: "Toyota",
+        password: "Hamza6551!",
+        admin: false
+    })
+    const testee = supertestWithAuth(app)
+    const response = await testee.put(`/api/pfleger/${idPfleger1}/`).send(pflegerResource)
+    expect(response.statusCode).toBe(403)
+})
+
 test("/api/pfleger/:id put ohne auth",async () => {
     let pflegerResource:PflegerResource = ({
         id: idPfleger1,
@@ -170,11 +183,18 @@ test("/api/pfleger/:id put",async () => {
     expect(response2.statusCode).toBe(404)
 })
 
-test("/api/pfleger/:id delete",async () => {
+test("/api/pfleger/:id delete mit auth",async () => {
     await performAuthentication("Hamza", "Hamza6551!")
     const testee = supertestWithAuth(app)
     const response = await testee.delete(`/api/pfleger/${idPfleger1}/`)
-    expect(response.statusCode).toBe(204)
+    expect(response.statusCode).toBe(403)
+})
+
+test("/api/pfleger/:id delete mit user",async () => {
+    await performAuthentication("Mert", "3da241!MM")
+    const testee = supertestWithAuth(app)
+    const response = await testee.delete(`/api/pfleger/${idPfleger1}/`)
+    expect(response.statusCode).toBe(403)
 })
 
 test("/api/pfleger/:id delete ohne auth",async () => {
