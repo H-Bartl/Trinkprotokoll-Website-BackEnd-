@@ -22,7 +22,7 @@ beforeEach(async () => {
     })
     idProtokoll1 = protokoll1.id!;
     const pfleger2 = await createPfleger({
-        name: "Mert", password: "3da241", admin: false
+        name: "Mert", password: "3da241!MM", admin: false
     })
     idPfleger2 = pfleger2.id!;
     const pfleger3 = await createPfleger({
@@ -65,6 +65,19 @@ test("/api/pfleger/ post mit auth",async () => {
     expect(response.body.password).toBeUndefined()
     expect(response.body.name).toBe("Toyota")
     expect(response.body.admin).toBeFalsy()
+})
+
+test("/api/pfleger/ post mit auth",async () => {
+    await performAuthentication("Mert", "3da241!MM")
+    let pflegerResource:PflegerResource = ({
+        name: "Toyota",
+        password: "Hamza6551!",
+        admin: false
+    })
+    const testeeAuth = supertestWithAuth(app)
+    const response = await testeeAuth.post(`/api/pfleger`).send(pflegerResource)
+    
+    expect(response.statusCode).toBe(403)
 })
 
 test("/api/pfleger/ pos ohne auth",async () => {

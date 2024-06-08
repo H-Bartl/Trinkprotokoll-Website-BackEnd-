@@ -3,6 +3,7 @@ import { createEintrag, deleteEintrag, getEintrag, updateEintrag } from "../serv
 import { body, matchedData, param, validationResult } from "express-validator";
 import { EintragResource } from "../Resources";
 import { requiresAuthentication, optionalAuthentication } from "./authentication";
+import { getProtokoll } from "../services/ProtokollService";
 
 export const eintragRouter = express.Router();
 
@@ -22,8 +23,17 @@ eintragRouter.post("/",
         }
         try {
             const eintrag = matchedData(req) as EintragResource;
+            const prot = await getProtokoll(eintrag.protokoll)
             const create = await createEintrag(eintrag);
-            res.status(201).send(create);
+
+            if(prot.public){
+                res.status(201).send(create)
+            }
+            if(prot.public=== false && req.pflegerId === prot.ersteller){
+                res.status(201).send(create)
+            }else {
+                res.status(403)
+            }
         } catch (err) {
             let errorClosed = []
             if(err instanceof Error){
@@ -55,7 +65,14 @@ eintragRouter.get("/:id",
         try {
             const id = matchedData(req)
             const getEint = await getEintrag(id.id);
-            res.send(getEint)
+
+            const prot = await getProtokoll(getEint.protokoll)
+            if(prot.public === true) res.send(getEint)
+            if(prot.public === false && req.pflegerId === getEint.ersteller || req.pflegerId === prot.ersteller){
+                res.send(getEint)
+            }else{
+                res.status(403)
+            }
         } catch (err) {
             res.status(404);
             next(err)
@@ -92,8 +109,15 @@ eintragRouter.put("/:id",
         }
         try {
             const resource = matchedData(req) as EintragResource
-            const updated = await updateEintrag(resource)
-            res.send(updated);
+
+            const prot = await getProtokoll(resource.protokoll)
+
+            if(req.pflegerId === prot.ersteller || req.pflegerId === resource.ersteller){
+                const updated = await updateEintrag(resource)
+                res.send(updated)
+            }else{
+                res.status(403)
+            }
         } catch (err) {
             res.status(404);
             next(err)
@@ -110,8 +134,14 @@ eintragRouter.delete("/:id",
         }
         try {
             const id = req.params!.id
-            const deleted = await deleteEintrag(id)
-            res.status(204).send(deleted)
+            const eintrag = await getEintrag(id)
+            const prot = await getProtokoll(eintrag.protokoll)
+            if(req.pflegerId === prot.ersteller || req.pflegerId === eintrag.ersteller){
+                const deleted = await deleteEintrag(id)
+                res.status(204).send(deleted)
+            }else {
+                res.status(403)
+            }
         } catch (err) {
             res.status(404)
             next(err)

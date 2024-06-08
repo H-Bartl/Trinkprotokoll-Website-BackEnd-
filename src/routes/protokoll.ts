@@ -87,10 +87,11 @@ protokollRouter.get("/:id",
             const id = matchedData(req)
             const getProt = await getProtokoll(id.id)
 
-            if(getProt.public === true) res.send(getProt)
-            if(getProt.public === false && req.pflegerId !== getProt.ersteller) res.status(403)
-
-            res.send(getProt)
+            if(getProt.public === true || getProt.public === false && req.pflegerId === getProt.ersteller) {
+                res.send(getProt)
+            } else{
+                res.status(403)
+            }
         } catch (err) {
             res.status(404);
             next(err)

@@ -23,10 +23,13 @@ pflegerRouter.post("/",
     if(!errors.isEmpty()){
         return res.status(400).send({errors: errors.array()})
     }
+
+    if(req.role === 'u') res.send(403)
     try {
         const pfleger = matchedData(req) as PflegerResource;
         const create = await createPfleger(pfleger)
         res.status(201).send(create); //201 weil created
+        
     } catch (err) {
         res.status(404);
         next(err)
@@ -59,8 +62,12 @@ pflegerRouter.put("/:id",
         }
         try {
             const pflegerResource = matchedData(req) as PflegerResource;
-            const updated = await updatePfleger(pflegerResource)
-            res.send(updated);
+            if(req.role === 'a'){
+                const updated = await updatePfleger(pflegerResource)
+                res.send(updated);
+            }else{
+                res.status(403)
+            }
         } catch (err) {
             res.status(404);
             next(err)
@@ -77,8 +84,16 @@ pflegerRouter.delete("/:id",
         }
         try {
             const pflegerId = matchedData(req)
-            const deleted = await deletePfleger(pflegerId.id)
-            res.status(204).send(deleted);
+            if(pflegerId.admin === true && req.pflegerId === pflegerId.id){
+                res.status(403)
+            }
+            if(req.role === 'a'){
+                const deleted = await deletePfleger(pflegerId.id)
+                res.status(204).send(deleted);
+            }else{
+                res.status(403)
+            }
+            
         } catch (err) {
             res.status(404)
             next(err)
