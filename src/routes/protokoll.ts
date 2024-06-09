@@ -16,6 +16,7 @@ protokollRouter.get("/:id/eintraege",
         if(!errors.isEmpty()) {
             return res.status(400).send({errors: errors.array()})
         }
+        
         const id = req.params!.id!;
         try {
             const eintraege = await getAlleEintraege(id);
