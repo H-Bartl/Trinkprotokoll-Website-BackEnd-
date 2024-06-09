@@ -38,7 +38,7 @@ eintragRouter.post("/",
                     errorClosed.push(
                         {
                             type: "field", location: "body", msg: "Protokoll is closed!",
-                            path: "closed", value: req.body.closed,
+                            path: "closed", value: req.body.protokoll,
                         }
                     )
                 }
