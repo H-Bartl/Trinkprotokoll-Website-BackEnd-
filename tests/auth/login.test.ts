@@ -40,6 +40,20 @@ test("/api/login POST, Negativtest",async () => {
     expect(response.statusCode).toBe(400)
 })
 
+test(`/api/login POST, Positivtest`, async () => {
+    delete process.env.JWT_SECRET
+    try{
+    await createPfleger({ name: "John", password: "1234abcdABCD..;,.", admin: false })
+
+    const testee = supertest(app);
+    const loginData = { name: "John", password: "1234abcdABCD..;,." };
+    const response = parseCookies(await testee.post(`/api/login`).send(loginData));
+    expect(response).statusCode(500)
+    } finally {
+        process.env.JWT_SECRET = "HamZA.Secret42!"
+    }
+ });
+
 test("/api/login POST, Negativtest auf 401",async () => {
     const testee = supertest(app);
     const loginData = {name: "Hamza", password: "falschesPassword42!"}

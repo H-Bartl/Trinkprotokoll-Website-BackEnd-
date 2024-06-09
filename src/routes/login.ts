@@ -29,6 +29,12 @@ loginRouter.post("/",
             })
             res.status(201).send(loginRes);
         } catch (err) {
+            if(err instanceof Error){
+                if(err.message === "Umgebungsvariable Secret und TTL nicht gegeben!"){
+                    res.status(500)
+                    next(err)
+                }
+            }
             res.status(401)
             next(err)
         }
