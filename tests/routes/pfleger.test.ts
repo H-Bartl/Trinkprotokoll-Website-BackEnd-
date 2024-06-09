@@ -55,7 +55,7 @@ test("/api/pfleger/alle get, 3 pfleger",async () => {
     await performAuthentication("Mert", "3da241!MM")
     const testee = supertestWithAuth(app);
     const response = await testee.get(`/api/pfleger/alle`);
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(403);
 })
 
 test("/api/pfleger/ post mit auth",async () => {

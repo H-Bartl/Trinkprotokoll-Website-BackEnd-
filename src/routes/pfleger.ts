@@ -3,11 +3,15 @@ import { createPfleger, deletePfleger, getAllePfleger, updatePfleger } from "../
 import { PflegerResource } from "../Resources";
 import { body, matchedData, param, validationResult } from "express-validator";
 import { optionalAuthentication, requiresAuthentication } from "./authentication";
+import { Pfleger } from "../model/PflegerModel";
 
 
 export const pflegerRouter = express.Router();
 
 pflegerRouter.get("/alle", optionalAuthentication ,async (req, res, next) => {
+    if(req.role === 'u'){
+        res.sendStatus(403)
+    }
     const pfleger = await getAllePfleger();
     res.send(pfleger); // 200 default
     
