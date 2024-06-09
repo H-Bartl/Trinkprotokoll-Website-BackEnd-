@@ -18,7 +18,7 @@ let protID: string
 
 beforeEach(async () => {
     // create a pfleger
-    const behrens = await createPfleger({ name: "Hofrat Behrens", password: "geheiM42!", admin: false })
+    const behrens = await createPfleger({ name: "Hofrat Behrens", password: "geheiM42!", admin: true })
     idBehrens = behrens.id!;
     const protokoll = await createProtokoll({ patient: "H. Castorp", datum: `01.11.1912`, ersteller: idBehrens, public: true });
     idProtokoll = protokoll.id!;
@@ -115,6 +115,13 @@ test("/api/protokoll/:id get",async () => {
 })
 
 test("/api/protokoll/:id get",async () => {
+    await performAuthentication("Hofrat Behrens", "geheiM42!")
+    const testee = supertestWithAuth(app);
+    const response = await testee.get(`/api/protokoll/${idProtokoll}/`);
+    expect(response.statusCode).toBe(200)
+})
+
+test("/api/protokoll/:id get",async () => {
     for (let i = 1; i <= 5; i++) {
         await createEintrag({ getraenk: "BHTee", menge: i * 10, protokoll: idProtokoll, ersteller: idBehrens })
     }
@@ -127,6 +134,13 @@ test("/api/protokoll/:id get",async () => {
 
 test("/api/protokoll/:id get, falsche Id",async () => {
     const testee = supertest(app);
+    const response = await testee.get(`/api/protokoll/${idBehrens}/`);
+    expect(response.statusCode).toBe(404)
+})
+
+test("/api/protokoll/:id get, falsche Id",async () => {
+    await performAuthentication("Hofrat Behrens", "geheiM42!")
+    const testee = supertestWithAuth(app);
     const response = await testee.get(`/api/protokoll/${idBehrens}/`);
     expect(response.statusCode).toBe(404)
 })
@@ -196,3 +210,16 @@ test("/api/protokoll/:id delete",async () => {
     const response = await testee.delete(`/api/protokoll/${idBehrens}`)
     expect(response.statusCode).toBe(404)
 })
+
+// test("/api/protokoll/ post",async () => {
+//     await performAuthentication("Hofrat Behrens", "geheiM42!")
+//     let protResource: ProtokollResource= ({
+//         patient: "Toyota",
+//         datum: dateToString(new Date),
+//         ersteller: idProtokoll,
+//         public: true
+//     })
+//     const testee = supertestWithAuth(app);
+//     const response = await testee.post(`/api/protokoll/`).send(protResource)
+//     expect(response.statusCode).toBe(400)
+// })

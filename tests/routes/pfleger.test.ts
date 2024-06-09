@@ -51,6 +51,13 @@ test("/api/pfleger/alle get, 3 pfleger",async () => {
     expect(response.body[0].password).toBeUndefined()
 })
 
+test("/api/pfleger/alle get, 3 pfleger",async () => {
+    await performAuthentication("Mert", "3da241!MM")
+    const testee = supertestWithAuth(app);
+    const response = await testee.get(`/api/pfleger/alle`);
+    expect(response.statusCode).toBe(200);
+})
+
 test("/api/pfleger/ post mit auth",async () => {
     await performAuthentication("Hamza", "Hamza6551!")
     let pflegerResource:PflegerResource = ({

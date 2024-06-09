@@ -21,10 +21,8 @@ export function requiresAuthentication(req: Request, res: Response, next: NextFu
     try {
         const jwtString = req.cookies.access_token;
 
+
         const verifyJwt = verifyJWT(jwtString)
-        if(!verifyJwt){
-            res.status(401)
-        }
         req.pflegerId = verifyJwt.id;
         req.role = verifyJwt.role;
         next()

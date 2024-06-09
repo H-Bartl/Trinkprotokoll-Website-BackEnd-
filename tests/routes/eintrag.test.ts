@@ -6,6 +6,7 @@ import { dateToString } from "../../src/services/ServiceHelper";
 import { createEintrag } from "../../src/services/EintragService";
 import { EintragResource } from "../../src/Resources";
 import { performAuthentication, supertestWithAuth } from "../supertestWithAuth";
+import { Cookie } from "restmatcher";
 
 
 let idPfleger1:string;
@@ -130,6 +131,15 @@ test("/api/eintrag/:id get mit optional auth",async () => {
     const response = await testee.get(`/api/eintrag/${idEintrag1}/`)
     expect(response.statusCode).toBe(200)
     expect(response.body.erstellerName).toBe("Hamza")
+})
+
+test("/api/eintrag/:id get mit optional auth",async () => {
+    let cookie: Cookie | undefined = undefined
+    await performAuthentication("Hamza", "3421lsdsA!")
+    const testee = supertest(app);
+    const response = await testee.get(`/api/eintrag/${idEintrag1}/`).set("Cookie",
+    "access_token=" + cookie)
+    expect(response.statusCode).toBe(401)
 })
 
 test("/api/eintrag/:id get mit optional auth",async () => {
