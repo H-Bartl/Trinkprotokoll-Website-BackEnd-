@@ -8,9 +8,11 @@ import { protokollRouter } from './routes/protokoll';
 import { pflegerRouter } from './routes/pfleger';
 import { eintragRouter } from './routes/eintrag';
 import cookieParser from 'cookie-parser';
+import { configureCORS } from './configCORS';
 
 const app = express();
 
+configureCORS(app);
 // Middleware:
 app.use('*', express.json()) // vgl. Folie 138
 app.use(cookieParser());

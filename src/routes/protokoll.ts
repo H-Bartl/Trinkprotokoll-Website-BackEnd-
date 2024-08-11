@@ -9,12 +9,12 @@ import { requiresAuthentication, optionalAuthentication } from "./authentication
 export const protokollRouter = express.Router();
 
 protokollRouter.get("/:id/eintraege", 
-    param("id").isMongoId(),
     optionalAuthentication,
+    param("id").isMongoId(),
     async (req, res, next) => {
         const errors = validationResult(req)
         if(!errors.isEmpty()) {
-            return res.status(400).send({errors: errors.array()})
+            res.status(400).json({errors: errors.array()})
         }
         
         const id = req.params!.id!;
@@ -28,9 +28,17 @@ protokollRouter.get("/:id/eintraege",
 })
 
 protokollRouter.get("/alle", optionalAuthentication, async (req,res,next) => {
-        const protId = req.body.ersteller
-        const protokolle = await getAlleProtokolle(protId)
-        res.send(protokolle)
+        // const protId = req.pflegerId
+        // const protokolle = await getAlleProtokolle(protId)
+        // res.send(protokolle)
+
+        try {
+            let protkollListe = await getAlleProtokolle(req.pflegerId);
+            res.status(200).send(protkollListe)
+        }
+        catch (err) {
+            res.sendStatus(400)
+        }
 })
 
 protokollRouter.post("/",
@@ -76,12 +84,12 @@ protokollRouter.post("/",
 })
 
 protokollRouter.get("/:id",
+    optionalAuthentication, 
     param("id").isMongoId(),
-    optionalAuthentication,
     async (req,res,next) => {
         const errors = validationResult(req)
         if(!errors.isEmpty()){
-            return res.status(400).send({errors: errors.array()})
+            res.status(400).json({errors: errors.array()})
         }
         try {
 
